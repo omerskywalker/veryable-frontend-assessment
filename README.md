@@ -1,12 +1,27 @@
-## Veryable Frontend Challenge
+# Omer Siddiqui Frontend Assessment
 
-### **Goal**
+This project implements a small Ops Dashboard using Next.js, React, TypeScript, and Material UI.
 
-This challenge assesses your proficiency in **React** and **Next.js**, including concepts like **API calls** and handling **loading** and **error states**.
+The goal was to keep the solution readable and well-structured without over-engineering a take-home assignment.
 
----
+## Key Decisions
 
-### **Problem Statement**
+- **Client-side data fetching** via a small custom hook (`useFetchOps`) to keep the app simple and interactive
+- **Separation of concerns**:
+  - UI components (`OpCard`, `OperatorRow`, `OpsDashboardClient`)
+  - Hooks for stateful logic
+  - Pure utilities for filtering/search logic
+- **Search logic** extracted into a pure function for clarity and testability
+- **Custom hooks** used where state or side effects would otherwise clutter components
 
-1.  **Clone the starter repository** using the provided link: [Github Repo](https://github.com/Veryable/Frontend-Assessment).
-2.  Make a `GET` API call to the endpoint: `https://frontend-challenge.veryableops.com/`. This endpoint provides the data for rendering.
+## Testing
+
+A small set of unit tests is included to demonstrate testing intent around:
+
+- Pure utility logic
+- API boundary behavior
+
+## Notes
+
+This solution prioritizes clarity, maintainability, and reasonable tradeoffs appropriate for a take-home.  
+Happy to walk through any decisions or alternatives if helpful.
