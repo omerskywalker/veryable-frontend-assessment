@@ -7,10 +7,19 @@ The goal was to keep the solution readable and well-structured without over-engi
 ## Environment
 
 This app expects the following environment variable to be set:
+
 ```bash
 NEXT_PUBLIC_OPS_API_URL=https://frontend-challenge.veryableops.com/
 ```
+
 For local development, create a `.env.local` file at the project root with the value above.
+
+## Running the App
+
+```bash
+npm install
+npm run dev
+```
 
 ## Key Decisions
 
