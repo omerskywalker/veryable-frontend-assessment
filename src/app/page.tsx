@@ -10,18 +10,18 @@ import {
   Skeleton,
   useMediaQuery,
   useTheme,
+  Container,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 
 import OpCard from "@/components/OpCard";
-import { pxrem } from "@/utils/pxrem";
-import { veryableBlue } from "@/theme/globalStyles";
 import { useFetchOps } from "@/hooks/useFetchOps";
 import { filterOpsByQuery } from "@/utils/filterOps";
 
 export default function Home() {
   const [query, setQuery] = useState("");
   const { ops, loading, error } = useFetchOps();
+
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
@@ -29,12 +29,16 @@ export default function Home() {
 
   // shared layout wrapper
   const renderLayout = (content: React.ReactNode) => (
-    <Box
+    <Container
       component="main"
+      maxWidth={false}
       sx={{
-        width: { xs: "100%", sm: "92%" },
-        mx: "auto",
-        p: { xs: 1, sm: 2 },
+        width: {
+          xs: "100%",
+          md: "85%",
+          lg: "90%",
+        },
+        py: { xs: 2, sm: 3 },
       }}
     >
       {/* header + search */}
@@ -45,36 +49,38 @@ export default function Home() {
           alignItems: { xs: "stretch", sm: "center" },
           justifyContent: "space-between",
           gap: 2,
-          mt: pxrem(24),
-          mb: pxrem(24),
+          my: { xs: 2, sm: 3 },
         }}
       >
         <Typography
           variant="h1"
           sx={{
-            color: veryableBlue,
-            fontSize: { xs: pxrem(24), sm: pxrem(32) },
+            fontSize: {
+              xs: theme.typography.pxToRem(24),
+              sm: theme.typography.pxToRem(32),
+            },
             fontWeight: 800,
             textAlign: { xs: "center", sm: "left" },
+            color: "primary.main",
           }}
         >
           Veryable Ops Dashboard
         </Typography>
+
         <TextField
           aria-label="Search operations"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder={
-            isMobile
-              ? "Search..."
-              : "Search by Operator Name, Op Title, or Public ID"
-          }
+          placeholder={"Search by Operator Name, Op Title, or Public ID"}
           size="small"
           disabled={loading}
+          fullWidth={isMobile}
           sx={{
             minWidth: { xs: "100%", sm: 320 },
-            maxWidth: { xs: "100%", sm: 480 },
-            "& .MuiInputBase-root": { fontSize: "0.8rem" },
+            maxWidth: {
+              xs: "100%",
+              sm: 480,
+            },
           }}
           slotProps={{
             input: {
@@ -83,6 +89,9 @@ export default function Home() {
                   <SearchIcon />
                 </InputAdornment>
               ),
+              sx: {
+                fontSize: "0.7rem",
+              },
             },
           }}
         />
@@ -90,14 +99,14 @@ export default function Home() {
 
       {/* content area */}
       {content}
-    </Box>
+    </Container>
   );
 
   // loading state - skeleton cards
   if (loading) {
     return renderLayout(
       <Stack spacing={3}>
-        {[1, 2, 3].map((i) => (
+        {Array.from({ length: 3 }).map((_, i) => (
           <Skeleton
             key={i}
             variant="rectangular"
@@ -113,10 +122,11 @@ export default function Home() {
   if (error) {
     return renderLayout(
       <Typography
+        role="alert"
         sx={{
           color: "error.main",
-          fontSize: "1.5rem",
-          fontWeight: "bold",
+          fontSize: theme.typography.pxToRem(18),
+          fontWeight: 700,
           textAlign: "center",
           mt: 4,
         }}

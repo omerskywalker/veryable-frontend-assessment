@@ -1,5 +1,9 @@
 import type { Op } from "@/types";
 
+export type FilteredOp = Op & {
+  filteredOperators?: Op["operators"];
+};
+
 const normalize = (value: unknown) =>
   String(value ?? "")
     .trim()
@@ -11,30 +15,31 @@ const matches = (fields: string[], q: string) => {
   return fields.some((f) => normalize(f).includes(needle));
 };
 
-export function filterOpsByQuery(ops: Op[], query: string): Op[] {
-  if (!query.trim()) return ops;
+export function filterOpsByQuery(ops: Op[], query: string): FilteredOp[] {
+  const needle = query.trim();
+  if (!needle) return ops;
 
   return ops
     .map((op) => {
-      const opMatches = matches([op.opTitle, op.publicId], query);
+      const opMatches = matches([op.opTitle, op.publicId], needle);
 
-      const matchingOperators = op.operators.filter((operator) => {
+      const filteredOperators = op.operators.filter((operator) => {
         const fullName = `${operator.firstName} ${operator.lastName}`;
         const reverseName = `${operator.lastName} ${operator.firstName}`;
 
         return matches(
           [operator.firstName, operator.lastName, fullName, reverseName],
-          query,
+          needle,
         );
       });
 
-      if (opMatches) return op;
+      // if op matches directly, show full operator list
+      if (opMatches) return { ...op, filteredOperators: op.operators };
 
-      if (matchingOperators.length > 0) {
-        return { ...op, operators: matchingOperators };
-      }
+      // if only operators match, show the filtered subset (but keep op.operators intact!)
+      if (filteredOperators.length > 0) return { ...op, filteredOperators };
 
       return null;
     })
-    .filter(Boolean) as Op[];
+    .filter(Boolean) as FilteredOp[];
 }

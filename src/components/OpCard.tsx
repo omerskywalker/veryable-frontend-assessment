@@ -1,45 +1,47 @@
 import { Op } from "@/types";
-import Card from "@mui/material/Card";
-import { Box, Typography } from "@mui/material";
-import CardHeader from "@mui/material/CardHeader";
-import { styled } from "@mui/material/styles";
 import OperatorRow from "./OperatorRow";
+
+import Card from "@mui/material/Card";
+import CardHeader from "@mui/material/CardHeader";
 import Chip from "@mui/material/Chip";
+import { Box, Typography } from "@mui/material";
+
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import PeopleIcon from "@mui/icons-material/People";
 import TagIcon from "@mui/icons-material/Tag";
+
 import { calculateHours } from "@/utils/calculateHours";
-import { formatDate } from "@/utils/formatDate";
+import { formatTime } from "@/utils/formatTime";
 
 interface OpCardProps {
-  op: Op;
+  op: Op & { filteredOperators?: Op["operators"] };
 }
 
-const StyledCard = styled(Card)({
-  backgroundColor: "#2081C3",
-  color: "white",
-});
-
 export default function OpCard({ op }: OpCardProps) {
+  const isFilled = op.operators.length >= op.operatorsNeeded;
+  const shortage = Math.max(0, op.operatorsNeeded - op.operators.length);
+
+  const operatorsToShow = op.filteredOperators ?? op.operators;
+
   return (
-    <StyledCard sx={{ marginBottom: "1.5%" }} variant="outlined">
+    <Card
+      variant="outlined"
+      sx={(theme) => ({
+        mb: 2,
+        bgcolor: theme.palette.primary.main,
+        color: theme.palette.primary.contrastText,
+        "& .MuiTypography-h4": { color: theme.palette.primary.contrastText },
+      })}
+    >
       <CardHeader
         sx={{
           pb: 2,
           "& .MuiCardHeader-content": { width: "100%" },
-          "& .MuiTypography-h6": {
-            color: "white",
-            fontWeight: "bold",
-            fontSize: "1.25rem",
-          },
         }}
         title={
           <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
             {/* title row */}
-            <Typography
-              variant="h6"
-              sx={{ fontWeight: 600, letterSpacing: "-0.01em" }}
-            >
+            <Typography variant="h4" sx={{ letterSpacing: "-0.01em" }}>
               {op.opTitle}
             </Typography>
 
@@ -62,6 +64,7 @@ export default function OpCard({ op }: OpCardProps) {
                   flexWrap: "wrap",
                 }}
               >
+                {/* public id */}
                 <Box
                   sx={{
                     display: "flex",
@@ -70,53 +73,64 @@ export default function OpCard({ op }: OpCardProps) {
                     opacity: 0.9,
                   }}
                 >
-                  <TagIcon sx={{ fontSize: 16 }} />
+                  <TagIcon fontSize="small" />
                   <Typography variant="body2" sx={{ fontFamily: "monospace" }}>
                     {op.publicId}
                   </Typography>
                 </Box>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <PeopleIcon sx={{ fontSize: 16, opacity: 0.9 }} />
+
+                {/* headcount + chip */}
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1,
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <PeopleIcon fontSize="small" sx={{ opacity: 0.9 }} />
                   <Typography variant="body2">
                     {op.operators.length}/{op.operatorsNeeded} Operators
                   </Typography>
+
                   <Chip
                     size="small"
-                    label={
-                      op.operators.length >= op.operatorsNeeded
-                        ? "Filled"
-                        : `Needs ${op.operatorsNeeded - op.operators.length}`
-                    }
-                    sx={{
-                      height: 22,
-                      fontSize: "0.75rem",
-                      fontWeight: 600,
-                      padding: "2px 6px",
-                      border: "1px solid white",
-                      bgcolor:
-                        op.operators.length >= op.operatorsNeeded
-                          ? "rgba(25, 135, 84, 1)"
-                          : "#f59e0b",
-                      color: "white",
+                    label={isFilled ? "Filled" : `Needs ${shortage}`}
+                    sx={(theme) => {
+                      const bg = isFilled
+                        ? theme.palette.success.main
+                        : theme.palette.warning.main;
+
+                      return {
+                        fontSize: theme.typography.pxToRem(12),
+                        fontWeight: 600,
+                        px: 0.75,
+                        py: 0.25,
+                        border: `1px solid ${theme.palette.common.white}`,
+                        bgcolor: bg,
+                        color: theme.palette.getContrastText(bg),
+                      };
                     }}
                   />
                 </Box>
               </Box>
+
               {/* time info */}
               <Box
                 sx={{
                   display: "flex",
                   flexDirection: "column",
-                  alignItems: "flex-end",
+                  alignItems: { xs: "flex-start", sm: "flex-end" },
                   gap: 0.25,
                 }}
               >
                 <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                  <AccessTimeIcon sx={{ fontSize: 16 }} />
+                  <AccessTimeIcon fontSize="small" />
                   <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                    {formatDate(op.startTime)} — {formatDate(op.endTime)}
+                    {formatTime(op.startTime)} — {formatTime(op.endTime)}
                   </Typography>
                 </Box>
+
                 <Typography variant="caption" sx={{ opacity: 0.7 }}>
                   {calculateHours(op.startTime, op.endTime)} hours estimated
                 </Typography>
@@ -126,7 +140,7 @@ export default function OpCard({ op }: OpCardProps) {
         }
       />
 
-      <OperatorRow opKey={op.opId} operators={op.operators} />
-    </StyledCard>
+      <OperatorRow opKey={op.opId} operators={operatorsToShow} />
+    </Card>
   );
 }

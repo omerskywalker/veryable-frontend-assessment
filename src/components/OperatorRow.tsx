@@ -1,21 +1,23 @@
 "use client";
+
+import { useMemo } from "react";
 import {
   Box,
   Button,
+  Chip,
   Stack,
   Typography,
   useMediaQuery,
-  useTheme,
 } from "@mui/material";
 import { DataGrid, GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import LoginIcon from "@mui/icons-material/Login";
 import LogoutIcon from "@mui/icons-material/Logout";
-import Chip from "@mui/material/Chip";
-import { useMemo } from "react";
+
 import { Operator } from "@/types";
 import { useOperatorCheckState } from "@/hooks/useOperatorCheckState";
 import OperatorCard from "./OperatorCard";
 import ReliabilityBadge from "./ReliabilityBadge";
+import { formatTime } from "@/utils/formatTime";
 
 type OperatorRowProps = {
   opKey: string | number;
@@ -26,55 +28,67 @@ function CheckInOutCell({
   opKey,
   operatorId,
 }: {
-  opKey: number | string;
-  operatorId: number | string;
+  opKey: string | number;
+  operatorId: string | number;
 }) {
   const { state, isCheckedIn, toggle, hydrated } = useOperatorCheckState(
     opKey,
     operatorId,
   );
+
   const label = isCheckedIn ? "Check out" : "Check in";
   const Icon = isCheckedIn ? LogoutIcon : LoginIcon;
   const timestamp = isCheckedIn ? state.checkedInAt : state.checkedOutAt;
+
   return (
     <Stack spacing={0.5} sx={{ width: "100%", alignItems: "center" }}>
       <Button
         onClick={toggle}
         size="small"
         variant={isCheckedIn ? "contained" : "outlined"}
-        startIcon={<Icon />}
+        startIcon={<Icon fontSize="small" />}
         disabled={!hydrated}
         sx={{ textTransform: "none" }}
       >
         {label}
       </Button>
+
       <Typography variant="caption" sx={{ textAlign: "center" }}>
         {!hydrated
           ? "Loading status…"
           : timestamp
-            ? `${isCheckedIn ? "Checked in" : "Checked out"}: ${new Date(
-                timestamp,
-              ).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`
+            ? `${isCheckedIn ? "Checked in" : "Checked out"}: ${formatTime(timestamp)}`
             : "—"}
       </Typography>
     </Stack>
   );
 }
 
-export default function OperatorRow({ opKey, operators }: OperatorRowProps) {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+const dataGridSx = {
+  "& .MuiDataGrid-cell:focus, & .MuiDataGrid-cell:focus-within": {
+    outline: "none",
+  },
+  "& .MuiDataGrid-cell": {
+    display: "flex",
+    alignItems: "center",
+    py: 1.5,
+  },
+  "& .MuiDataGrid-selectedRowCount": { display: "none" },
+};
 
-  const columns = useMemo<GridColDef<Operator>[]>(
-    () => [
-      { field: "firstName", headerName: "First name", minWidth: 100, flex: 1 },
-      { field: "lastName", headerName: "Last name", minWidth: 100, flex: 1 },
+export default function OperatorRow({ opKey, operators }: OperatorRowProps) {
+  const isMobile = useMediaQuery((theme) => theme.breakpoints.down("md"));
+
+  const columns = useMemo<GridColDef<Operator>[]>(() => {
+    return [
+      { field: "firstName", headerName: "First name", minWidth: 120, flex: 1 },
+      { field: "lastName", headerName: "Last name", minWidth: 120, flex: 1 },
       {
         field: "opsCompleted",
         headerName: "Ops Completed",
         type: "number",
-        minWidth: 100,
-        flex: 1,
+        minWidth: 140,
+        flex: 0.8,
         headerAlign: "center",
         align: "center",
       },
@@ -82,7 +96,7 @@ export default function OperatorRow({ opKey, operators }: OperatorRowProps) {
         field: "reliability",
         headerName: "Reliability",
         type: "number",
-        minWidth: 120,
+        minWidth: 140,
         flex: 0.8,
         headerAlign: "center",
         align: "center",
@@ -91,18 +105,22 @@ export default function OperatorRow({ opKey, operators }: OperatorRowProps) {
       {
         field: "endorsements",
         headerName: "Endorsements",
-        minWidth: 200,
+        minWidth: 220,
         flex: 1.2,
         sortable: false,
-        renderCell: (params: GridRenderCellParams<Operator>) => {
-          const endorsements = params.value as string[];
-          if (!endorsements || endorsements.length === 0) {
+        renderCell: (
+          params: GridRenderCellParams<Operator, string[] | undefined>,
+        ) => {
+          const endorsements = params.value ?? [];
+
+          if (endorsements.length === 0) {
             return (
-              <Typography variant="body2" sx={{ opacity: 0.5 }}>
+              <Typography variant="body2" sx={{ opacity: 0.6 }}>
                 —
               </Typography>
             );
           }
+
           return (
             <Box
               sx={{
@@ -110,26 +128,25 @@ export default function OperatorRow({ opKey, operators }: OperatorRowProps) {
                 flexDirection: "column",
                 alignItems: "flex-start",
                 justifyContent: "center",
-                gap: 0.5,
+                gap: 0.75,
                 py: 0.5,
                 height: "100%",
               }}
             >
               {endorsements.map((endorsement, index) => (
                 <Chip
-                  key={index}
+                  key={`${params.row.id}-${endorsement}-${index}`}
                   label={endorsement}
                   size="small"
-                  sx={{
-                    height: 22,
-                    fontSize: "0.7rem",
+                  variant="outlined"
+                  sx={(theme) => ({
+                    fontSize: theme.typography.pxToRem(12),
                     fontWeight: 500,
-                    bgcolor: "rgba(0, 0, 0, 0.06)",
-                    color: "text.secondary",
-                    "& .MuiChip-label": {
-                      px: 1,
-                    },
-                  }}
+                    bgcolor: theme.palette.action.hover,
+                    color: theme.palette.text.secondary,
+                    borderColor: theme.palette.divider,
+                    "& .MuiChip-label": { px: 1 },
+                  })}
                 />
               ))}
             </Box>
@@ -139,7 +156,7 @@ export default function OperatorRow({ opKey, operators }: OperatorRowProps) {
       {
         field: "checkInOut",
         headerName: "Check In/Check Out",
-        minWidth: 180,
+        minWidth: 200,
         flex: 1,
         sortable: false,
         filterable: false,
@@ -149,11 +166,10 @@ export default function OperatorRow({ opKey, operators }: OperatorRowProps) {
           <CheckInOutCell opKey={opKey} operatorId={params.row.id} />
         ),
       },
-    ],
-    [opKey],
-  );
+    ];
+  }, [opKey]);
 
-  // mobile view: switch to card layout
+  // mobile: card layout
   if (isMobile) {
     return (
       <Box sx={{ bgcolor: "background.paper" }}>
@@ -164,30 +180,20 @@ export default function OperatorRow({ opKey, operators }: OperatorRowProps) {
     );
   }
 
-  // desktop view: switch to DataGrid
+  // desktop: DataGrid layout
   return (
     <Box sx={{ width: "100%" }}>
       <DataGrid
-        sx={{
-          "& .MuiDataGrid-cell:focus": { outline: "none" },
-          "& .MuiDataGrid-cell:focus-within": { outline: "none" },
-          "& .MuiDataGrid-cell": {
-            display: "flex",
-            alignItems: "center",
-            py: 1.5,
-          },
-          "& .MuiDataGrid-selectedRowCount": { display: "none" },
-        }}
+        sx={dataGridSx}
         getRowHeight={() => "auto"}
         rows={operators}
         columns={columns}
         getRowId={(row) => row.id}
         density="compact"
+        disableRowSelectionOnClick
         initialState={{
           pagination: { paginationModel: { pageSize: 5 } },
-          sorting: {
-            sortModel: [{ field: "reliability", sort: "desc" }],
-          },
+          sorting: { sortModel: [{ field: "reliability", sort: "desc" }] },
         }}
         pageSizeOptions={[5]}
         hideFooter={operators.length <= 5}

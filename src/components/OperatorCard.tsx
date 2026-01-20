@@ -1,16 +1,22 @@
 "use client";
-import { Box, Button, Chip, Paper, Stack, Typography } from "@mui/material";
+
+import { Box, Button, Chip, Paper, Typography } from "@mui/material";
 import LoginIcon from "@mui/icons-material/Login";
 import LogoutIcon from "@mui/icons-material/Logout";
+
 import { Operator } from "@/types";
 import { useOperatorCheckState } from "@/hooks/useOperatorCheckState";
 import ReliabilityBadge from "./ReliabilityBadge";
+import { formatTime } from "@/utils/formatTime";
 
 type OperatorCardProps = {
   opKey: string | number;
   operator: Operator;
 };
 
+{
+  /* mobile view: operator card component */
+}
 export default function OperatorCard({ opKey, operator }: OperatorCardProps) {
   const { state, isCheckedIn, toggle, hydrated } = useOperatorCheckState(
     opKey,
@@ -24,12 +30,11 @@ export default function OperatorCard({ opKey, operator }: OperatorCardProps) {
   return (
     <Paper
       elevation={0}
-      sx={{
+      sx={(theme) => ({
         p: 2,
-        borderBottom: "1px solid",
-        borderColor: "divider",
-        "&:last-child": { borderBottom: "none" },
-      }}
+        borderBottom: `1px solid ${theme.palette.divider}`,
+        "&:last-of-type": { borderBottom: "none" },
+      })}
     >
       {/* header: name + reliability */}
       <Box
@@ -38,9 +43,10 @@ export default function OperatorCard({ opKey, operator }: OperatorCardProps) {
           justifyContent: "space-between",
           alignItems: "flex-start",
           mb: 1.5,
+          gap: 2,
         }}
       >
-        <Box>
+        <Box sx={{ minWidth: 0 }}>
           <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
             {operator.firstName} {operator.lastName}
           </Typography>
@@ -48,28 +54,30 @@ export default function OperatorCard({ opKey, operator }: OperatorCardProps) {
             {operator.opsCompleted} ops completed
           </Typography>
         </Box>
+
         <ReliabilityBadge reliability={operator.reliability} />
       </Box>
 
       {/* endorsements */}
-      {operator.endorsements && operator.endorsements.length > 0 && (
-        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5, mb: 2 }}>
+      {operator.endorsements?.length ? (
+        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.75, mb: 2 }}>
           {operator.endorsements.map((endorsement, index) => (
             <Chip
-              key={index}
+              key={`${operator.id}-${endorsement}-${index}`}
               label={endorsement}
               size="small"
-              sx={{
-                height: 22,
-                fontSize: "0.7rem",
+              variant="outlined"
+              sx={(theme) => ({
+                fontSize: theme.typography.pxToRem(12),
                 fontWeight: 500,
-                bgcolor: "rgba(0, 0, 0, 0.06)",
-                color: "text.secondary",
-              }}
+                bgcolor: theme.palette.action.hover,
+                color: theme.palette.text.secondary,
+                borderColor: theme.palette.divider,
+              })}
             />
           ))}
         </Box>
-      )}
+      ) : null}
 
       {/* check in/out action */}
       <Box
@@ -77,27 +85,24 @@ export default function OperatorCard({ opKey, operator }: OperatorCardProps) {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
+          gap: 2,
         }}
       >
         <Typography variant="caption" color="text.secondary">
           {!hydrated
             ? "Loading status…"
             : timestamp
-              ? `${isCheckedIn ? "Checked in" : "Checked out"}: ${new Date(
-                  timestamp,
-                ).toLocaleTimeString([], {
-                  hour: "numeric",
-                  minute: "2-digit",
-                })}`
+              ? `${isCheckedIn ? "Checked in" : "Checked out"}: ${formatTime(timestamp)}`
               : "—"}
         </Typography>
+
         <Button
           onClick={toggle}
           size="small"
           variant={isCheckedIn ? "contained" : "outlined"}
-          startIcon={<Icon />}
+          startIcon={<Icon fontSize="small" />}
           disabled={!hydrated}
-          sx={{ textTransform: "none" }}
+          sx={{ textTransform: "none", flexShrink: 0 }}
         >
           {label}
         </Button>
