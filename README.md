@@ -4,6 +4,14 @@ This project implements a small Ops Dashboard using Next.js, React, TypeScript, 
 
 The goal was to keep the solution readable and well-structured without over-engineering a take-home assignment.
 
+## Environment
+
+This app expects the following environment variable to be set:
+```bash
+NEXT_PUBLIC_OPS_API_URL=https://frontend-challenge.veryableops.com/
+```
+For local development, create a `.env.local` file at the project root with the value above.
+
 ## Key Decisions
 
 - **Client-side data fetching** via a small custom hook (`useFetchOps`) to centralize API concerns and reduce component coupling
