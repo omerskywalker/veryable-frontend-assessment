@@ -30,8 +30,6 @@ export function useOperatorCheckState(
   );
 
   const [hydrated, setHydrated] = useState(false);
-
-  // default to "out" for stability
   const [state, setState] = useState<OperatorCheckState>({ status: "out" });
 
   // load from localStorage after mount
@@ -44,8 +42,11 @@ export function useOperatorCheckState(
           setState(parsed);
         }
       }
-    } catch {
-      // ignore
+    } catch (err) {
+      console.error(
+        `[useOperatorCheckState] Failed to load state for ${key}:`,
+        err,
+      );
     } finally {
       setHydrated(true);
     }
@@ -56,8 +57,11 @@ export function useOperatorCheckState(
     if (!hydrated) return;
     try {
       localStorage.setItem(key, JSON.stringify(state));
-    } catch {
-      // ignore
+    } catch (err) {
+      console.error(
+        `[useOperatorCheckState] Failed to save state for ${key}:`,
+        err,
+      );
     }
   }, [key, state, hydrated]);
 
@@ -91,8 +95,11 @@ export function useOperatorCheckState(
     setState({ status: "out" });
     try {
       localStorage.removeItem(key);
-    } catch {
-      // ignore
+    } catch (err) {
+      console.error(
+        `[useOperatorCheckState] Failed to clear state for ${key}:`,
+        err,
+      );
     }
   }, [key]);
 

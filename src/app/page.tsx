@@ -7,7 +7,9 @@ import {
   TextField,
   InputAdornment,
   Stack,
-  CircularProgress,
+  Skeleton,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 
@@ -20,122 +22,122 @@ import { filterOpsByQuery } from "@/utils/filterOps";
 export default function Home() {
   const [query, setQuery] = useState("");
   const { ops, loading, error } = useFetchOps();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const filteredOps = useMemo(() => filterOpsByQuery(ops, query), [ops, query]);
 
-  if (loading) {
-    return (
+  // shared layout wrapper
+  const renderLayout = (content: React.ReactNode) => (
+    <Box
+      component="main"
+      sx={{
+        width: { xs: "100%", sm: "92%" },
+        mx: "auto",
+        p: { xs: 1, sm: 2 },
+      }}
+    >
+      {/* header + search */}
       <Box
-        component="main"
         sx={{
-          minHeight: "100vh",
           display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "flex-start",
+          flexDirection: { xs: "column", sm: "row" },
+          alignItems: { xs: "stretch", sm: "center" },
+          justifyContent: "space-between",
           gap: 2,
+          mt: pxrem(24),
+          mb: pxrem(24),
         }}
       >
         <Typography
           variant="h1"
           sx={{
             color: veryableBlue,
-            fontSize: pxrem(40),
-            textShadow: "1px 1px 1px grey",
+            fontSize: { xs: pxrem(24), sm: pxrem(32) },
             fontWeight: 800,
-            mb: 2,
-            mt: pxrem(32),
-            pt: pxrem(16),
-            textAlign: "center",
+            textAlign: { xs: "center", sm: "left" },
           }}
         >
           Veryable Ops Dashboard
         </Typography>
-
-        <CircularProgress />
-
-        <Typography>Loading Ops...</Typography>
-      </Box>
-    );
-  }
-
-  if (error) {
-    return (
-      <Box
-        component="main"
-        sx={{
-          minHeight: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          px: 2,
-        }}
-      >
-        <Typography
-          sx={{
-            color: "error.main",
-            fontSize: "2rem",
-            fontWeight: "bold",
-            textAlign: "center",
-          }}
-        >
-          Error: {error}
-        </Typography>
-      </Box>
-    );
-  }
-
-  return (
-    <Box
-      component="main"
-      sx={{
-        width: "92%",
-        mx: "auto",
-        p: 2,
-      }}
-    >
-      <Typography
-        variant="h1"
-        sx={{
-          color: veryableBlue,
-          fontSize: pxrem(40),
-          textShadow: "1px 1px 1px grey",
-          fontWeight: 800,
-          mt: pxrem(32),
-          mb: pxrem(32),
-          textAlign: "center",
-        }}
-      >
-        Veryable Ops Dashboard
-      </Typography>
-
-      <Box sx={{ maxWidth: 720, mx: "auto", mb: 4 }}>
         <TextField
-          fullWidth
+          aria-label="Search operations"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search by Operator Name, Op Title, or Public ID"
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon />
-              </InputAdornment>
-            ),
+          placeholder={
+            isMobile
+              ? "Search..."
+              : "Search by Operator Name, Op Title, or Public ID"
+          }
+          size="small"
+          disabled={loading}
+          sx={{
+            minWidth: { xs: "100%", sm: 320 },
+            maxWidth: { xs: "100%", sm: 480 },
+            "& .MuiInputBase-root": { fontSize: "0.8rem" },
+          }}
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              ),
+            },
           }}
         />
       </Box>
 
-      {query.trim() && filteredOps.length === 0 ? (
-        <Typography sx={{ textAlign: "center", mt: 4 }}>
-          No results for “{query}”
-        </Typography>
-      ) : (
-        <Stack spacing={3}>
-          {filteredOps.map((op) => (
-            <OpCard key={op.opId} op={op} />
-          ))}
-        </Stack>
-      )}
+      {/* content area */}
+      {content}
     </Box>
+  );
+
+  // loading state - skeleton cards
+  if (loading) {
+    return renderLayout(
+      <Stack spacing={3}>
+        {[1, 2, 3].map((i) => (
+          <Skeleton
+            key={i}
+            variant="rectangular"
+            height={isMobile ? 200 : 280}
+            sx={{ borderRadius: 2 }}
+          />
+        ))}
+      </Stack>,
+    );
+  }
+
+  // error state
+  if (error) {
+    return renderLayout(
+      <Typography
+        sx={{
+          color: "error.main",
+          fontSize: "1.5rem",
+          fontWeight: "bold",
+          textAlign: "center",
+          mt: 4,
+        }}
+      >
+        Error: {error}
+      </Typography>,
+    );
+  }
+
+  // loaded state
+  return renderLayout(
+    query.trim() && filteredOps.length === 0 ? (
+      <Typography sx={{ textAlign: "center", mt: 4 }}>
+        {`No results for "${query}"`}
+      </Typography>
+    ) : (
+      <Stack spacing={3}>
+        {filteredOps.map((op) => (
+          <OpCard key={op.opId} op={op} />
+        ))}
+      </Stack>
+    ),
   );
 }

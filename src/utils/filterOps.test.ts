@@ -9,6 +9,7 @@ function makeOp(overrides: Partial<Op> = {}): Op {
     operatorsNeeded: 5,
     startTime: "2026-01-19T15:00:00Z",
     endTime: "2026-01-19T23:30:00Z",
+    estTotalHours: 8.5,
     operators: [],
     ...overrides,
   };
@@ -69,7 +70,7 @@ describe("filterOpsByQuery", () => {
       }),
     ];
 
-    // Query matches only "Chris Hunter", not op title/publicId
+    // query matches only "chris hunter", not op title/publicId
     const result = filterOpsByQuery(ops, "hunter");
 
     expect(result).toHaveLength(1);

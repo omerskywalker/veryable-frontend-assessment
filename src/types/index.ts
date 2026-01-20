@@ -16,5 +16,6 @@ export interface Op {
   operatorsNeeded: number;
   startTime: string;
   endTime: string;
+  estTotalHours: number;
   operators: Operator[];
 }
