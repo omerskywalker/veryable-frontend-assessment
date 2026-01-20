@@ -16,7 +16,7 @@ For local development, create a `.env.local` file at the project root with the v
 
 - **Client-side data fetching** via a small custom hook (`useFetchOps`) to centralize API concerns and reduce component coupling
 - **Separation of concerns**:
-  - UI components (`OpCard`, `OperatorRow`, `OperatorCard`)
+  - UI components (`OpCard`, `OperatorRow`, `OperatorCard`, `ReliabilityBadge`)
   - Hooks for stateful logic
   - Pure utilities for filtering/search logic
 - **Search logic** extracted into a pure function for clarity and testability
