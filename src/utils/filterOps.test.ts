@@ -73,9 +73,10 @@ describe("filterOpsByQuery", () => {
     // query matches only "chris hunter", not op title/publicId
     const result = filterOpsByQuery(ops, "hunter");
 
-    expect(result).toHaveLength(1);
-    expect(result[0].operators).toHaveLength(1);
-    expect(result[0].operators[0].id).toBe(10);
+  expect(result).toHaveLength(1);
+  // when only operators match, filterOps returns a filteredOperators field
+  expect(result[0].filteredOperators).toHaveLength(1);
+  expect(result[0].filteredOperators![0].id).toBe(10);
   });
 
   test("if op matches, keeps all operators", () => {
@@ -97,7 +98,8 @@ describe("filterOpsByQuery", () => {
     ];
 
     const result = filterOpsByQuery(ops, "forklift");
-    expect(result).toHaveLength(1);
-    expect(result[0].operators).toHaveLength(1);
+  expect(result).toHaveLength(1);
+  // when op matches, all operators are preserved on the operators field
+  expect(result[0].operators).toHaveLength(1);
   });
 });

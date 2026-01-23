@@ -33,13 +33,13 @@ export function filterOpsByQuery(ops: Op[], query: string): FilteredOp[] {
         );
       });
 
-      // if op matches directly, show full operator list
-      if (opMatches) return { ...op, filteredOperators: op.operators };
+      // if op matches directly, return the op unchanged (keep all operators)
+      if (opMatches) return op;
 
-      // if only operators match, show the filtered subset (but keep op.operators intact!)
+      // if only operators match, return the op with a filteredOperators field
       if (filteredOperators.length > 0) return { ...op, filteredOperators };
 
       return null;
     })
-    .filter(Boolean) as FilteredOp[];
+  .filter(Boolean) as FilteredOp[];
 }

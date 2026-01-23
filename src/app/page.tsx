@@ -15,17 +15,19 @@ import {
 import SearchIcon from "@mui/icons-material/Search";
 
 import OpCard from "@/components/OpCard";
-import { useFetchOps } from "@/hooks/useFetchOps";
+import { useOpsQuery } from "@/hooks/useOpsQuery";
 import { filterOpsByQuery } from "@/utils/filterOps";
 
 export default function Home() {
   const [query, setQuery] = useState("");
-  const { ops, loading, error } = useFetchOps();
+  const { data, isLoading, error } = useOpsQuery();
+  const loading = isLoading;
+  const errorMsg = error ? String(error?.message ?? error) : null;
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
-  const filteredOps = useMemo(() => filterOpsByQuery(ops, query), [ops, query]);
+  const filteredOps = useMemo(() => filterOpsByQuery(data ?? [], query), [data, query]);
 
   // shared layout wrapper
   const renderLayout = (content: React.ReactNode) => (
@@ -119,7 +121,7 @@ export default function Home() {
   }
 
   // error state
-  if (error) {
+  if (errorMsg) {
     return renderLayout(
       <Typography
         role="alert"
@@ -131,7 +133,7 @@ export default function Home() {
           mt: 4,
         }}
       >
-        Error: {error}
+        Error: {errorMsg}
       </Typography>,
     );
   }
